@@ -29,6 +29,11 @@ class TamagModel {
     static get EAT_FUNC_NAME()   { return 'eat' };
     static get HAPPY_FUNC_NAME() { return 'happy' };
     static get CLEAN_FUNC_NAME() { return 'clean' };
+    static get DOCTOR_FUNC_NAME(){ return 'doctor' };
+    static get GOTOBAR_FUNC_NAME() { return 'go to bar' };
+    static get GOTOWORK_FUNC_NAME() { return 'go to work' };
+    static get BUYFOOD_FUNC_NAME() { return 'buy food' };
+    static get STARTBUSINESS_FUNC_NAME() { return 'start a business'};
 
     constructor(maxStat = TamagModel.DEFAULT_MAX_STAT) {
         this.maxStat = maxStat;
@@ -36,6 +41,9 @@ class TamagModel {
         this.eatStat = Randomaizer.getRandom(TamagModel.DEFAULT_MIN_STAT, maxStat);
         this.cleanStat = Randomaizer.getRandom(TamagModel.DEFAULT_MIN_STAT, maxStat);
         this.happyStat = Randomaizer.getRandom(TamagModel.DEFAULT_MIN_STAT, maxStat);
+        this.healthStat = Randomaizer.getRandom(TamagModel.DEFAULT_MIN_STAT, maxStat);
+        this.socializationStat = Randomaizer.getRandom(TamagModel.DEFAULT_MIN_STAT, maxStat);
+        this.moneyStat = Randomaizer.getRandom(TamagModel.DEFAULT_MIN_STAT, maxStat);
     }
 
     executeAction(action) {
@@ -46,6 +54,16 @@ class TamagModel {
                 return this._happy();
             case TamagModel.CLEAN_FUNC_NAME:
                 return this._clean();
+            case TamagModel.DOCTOR_FUNC_NAME:
+                return this._visitDoc();
+            case TamagModel.GOTOBAR_FUNC_NAME:
+                return this._goBar();
+            case TamagModel.GOTOWORK_FUNC_NAME:
+                return this._goWork();
+            case TamagModel.BUYFOOD_FUNC_NAME:
+                return this._buyFood();
+            case TamagModel.STARTBUSINESS_FUNC_NAME:
+                return this._startBusiness();
             default:
                 new Error('Unsupported tamag action name')
         }
@@ -56,6 +74,9 @@ class TamagModel {
             new TamagDto(this.eatStat, 'Eat', TamagModel.EAT_FUNC_NAME ),
             new TamagDto(this.happyStat, 'Happy', TamagModel.HAPPY_FUNC_NAME ),
             new TamagDto(this.cleanStat, 'Clean', TamagModel.CLEAN_FUNC_NAME ),
+            new TamagDto(this.healthStat, 'Health', TamagModel.DOCTOR_FUNC_NAME ),
+            new TamagDto(this.socializationStat, 'Socialization', TamagModel.GOTOBAR_FUNC_NAME ),
+            new TamagDto(this.moneyStat, 'Money', TamagModel.GOTOWORK_FUNC_NAME )
         ]
     }
 
@@ -67,6 +88,9 @@ class TamagModel {
         this.eatStat -= num;
         this.happyStat -= num;
         this.cleanStat -= num;
+        this.healthStat -= num;
+        this.socializationStat -=num;
+        this.moneyStat -= num;
     }
 
     _eat() {
@@ -82,6 +106,38 @@ class TamagModel {
     _happy() {
         this.happyStat = this._assignStat(this.happyStat, 15);
         this.eatStat -= 10;
+    }
+
+    //new actions here
+    _visitDoc() {
+        this.healtgStat = this._assignStat(this.healthStat, 30);
+        this.moneyStat -= 20;
+    }
+
+    _goBar() {
+        this.socializationStat = this._assignStat(this.socializationStat, 40);
+        this.eatStat = this._assignStat(this.eatStat, 10);
+        this.healthStat -= 10;
+        this.moneyStat -= 20;
+    }
+
+    _goWork() {
+        this.socializationStat -= 20;
+        this.eatStat -= 10;
+        this.healthStat -= 10;
+        this.moneyStat = this._assignStat(this.moneyStat, 50);
+    }
+
+    _buyFood() {
+        this.eatStat = this._assignStat(this.eatStat, 20);
+        this.moneyStat -= 20;
+    }
+
+    _startBusiness() {
+        this.socializationStat = this._assignStat(this.socializationStat, 20);
+        this.moneyStat = this._assignStat(this.moneyStat, 100);
+        this.happyStat = this._assignStat(this.happyStat, 100);
+        this.healthStat -= 100;
     }
 
     _assignStat(stat, increaseBy) {
@@ -105,14 +161,8 @@ class TamagView {
         this.elem.innerHTML = null;
 
         statsDtos.forEach((statProps) => {
-            let container = document.createElement('div');
-            container.style.display = 'flex';
-
-            let statName = document.createElement('p');
-            statName.innerHTML = statProps.name;
-
-            let statValueElem = document.createElement('p');
-            statValueElem.innerHTML = '        . . . .   ' + statProps.statValue + ' . . . ';
+            let containerButton = document.createElement('div');
+            containerButton.style.display = 'inline';
 
             let actionButton = document.createElement('button');
             actionButton.innerHTML = statProps.actionName;
@@ -120,11 +170,25 @@ class TamagView {
                 this.action(statProps.actionName)
             });
 
+            containerButton.appendChild(actionButton);
+
+            this.elem.appendChild(containerButton);
+        });
+
+        statsDtos.forEach((statProps) => {
+            let container = document.createElement('div');
+            container.style.display = 'flex';
+
+            let statName = document.createElement('p');
+            statName.innerHTML = statProps.name;
+
+            let statValueElem = document.createElement('p');
+            statValueElem.innerHTML = '        . . . .   ' + statProps.statValue;
+
             container.appendChild(statName);
             container.appendChild(statValueElem);
-            container.appendChild(actionButton);
 
-            this.elem.appendChild(container)
+            this.elem.appendChild(container);
         });
 
         let timer = document.createElement('p');
