@@ -4,12 +4,16 @@ class Randomaizer {
     }
 }
 
-
 class TamagDto {
-    constructor(statValue, statName, actionName) {
+    constructor(statValue, statName) {
        this.statValue = statValue;
        this.name = statName;
-       this.actionName = actionName;
+    }
+}
+
+class TamagActionsDto {
+    constructor(actionName) {
+        this.actionName = actionName;
     }
 }
 
@@ -29,7 +33,7 @@ class TamagModel {
     static get EAT_FUNC_NAME()   { return 'eat' };
     static get HAPPY_FUNC_NAME() { return 'happy' };
     static get CLEAN_FUNC_NAME() { return 'clean' };
-    static get DOCTOR_FUNC_NAME(){ return 'doctor' };
+    static get DOCTOR_FUNC_NAME(){ return 'visit doctor' };
     static get GOTOBAR_FUNC_NAME() { return 'go to bar' };
     static get GOTOWORK_FUNC_NAME() { return 'go to work' };
     static get BUYFOOD_FUNC_NAME() { return 'buy food' };
@@ -71,18 +75,48 @@ class TamagModel {
 
     getStats() {
         return [
-            new TamagDto(this.eatStat, 'Eat', TamagModel.EAT_FUNC_NAME ),
-            new TamagDto(this.happyStat, 'Happy', TamagModel.HAPPY_FUNC_NAME ),
-            new TamagDto(this.cleanStat, 'Clean', TamagModel.CLEAN_FUNC_NAME ),
-            new TamagDto(this.healthStat, 'Health', TamagModel.DOCTOR_FUNC_NAME ),
-            new TamagDto(this.socializationStat, 'Socialization', TamagModel.GOTOBAR_FUNC_NAME ),
-            new TamagDto(this.moneyStat, 'Money', TamagModel.GOTOWORK_FUNC_NAME )
+            new TamagDto(this.eatStat, 'Eat' ),
+            new TamagDto(this.happyStat, 'Happy' ),
+            new TamagDto(this.cleanStat, 'Clean' ),
+            new TamagDto(this.healthStat, 'Health' ),
+            new TamagDto(this.socializationStat, 'Socialization' ),
+            new TamagDto(this.moneyStat, 'Money' )
+        ]
+    }
+
+    // getStatValue() {
+    //     return [
+    //         this.eatStat,
+    //         this.happyStat,
+    //         this.cleanStat,
+    //         this.haalthStat,
+    //         this.socializationStat,
+    //         this.moneyStat
+    //     ]
+    // }
+
+    getAction(){
+        return [
+            new TamagActionsDto(TamagModel.EAT_FUNC_NAME),
+            new TamagActionsDto(TamagModel.CLEAN_FUNC_NAME),
+            new TamagActionsDto(TamagModel.HAPPY_FUNC_NAME),
+            new TamagActionsDto(TamagModel.DOCTOR_FUNC_NAME),
+            new TamagActionsDto(TamagModel.GOTOBAR_FUNC_NAME),
+            new TamagActionsDto(TamagModel.GOTOWORK_FUNC_NAME),
+            new TamagActionsDto(TamagModel.BUYFOOD_FUNC_NAME),
+            new TamagActionsDto(TamagModel.STARTBUSINESS_FUNC_NAME)
         ]
     }
 
     isTamagDead() {
         return !!this.getStats().find((statDto) => statDto.statValue < 0)
     }
+
+    // getRandomHelp(arr) {
+    //     let rand = Math.floor(Math.random() * arr.length);
+    //     arr[rand] = this._assignStat(arr[rand], Randomaizer.getRandom(10, 50));
+    //     return arr[rand];
+    // }
 
     decreaseStatsBy(num) {
         this.eatStat -= num;
@@ -110,7 +144,7 @@ class TamagModel {
 
     //new actions here
     _visitDoc() {
-        this.healtgStat = this._assignStat(this.healthStat, 30);
+        this.healthStat = this._assignStat(this.healthStat, 30);
         this.moneyStat -= 20;
     }
 
@@ -146,6 +180,13 @@ class TamagModel {
     }
 }
 
+class TamagModelSimplified extends TamagModel{
+    _assignStat(stat, increaseBy) {
+        let result = stat + increaseBy;
+        return result;
+    }
+}
+
 class TamagView {
     constructor(elem) {
         this.elem = elem;
@@ -157,10 +198,10 @@ class TamagView {
 
     // @param statsDtos Array <TeamDto>
     // @param timerDto [TimerDto]
-    renderGame(statsDtos, timerDto) {
+    renderGame(statsDtos, actionsDtos, timerDto) {
         this.elem.innerHTML = null;
 
-        statsDtos.forEach((statProps) => {
+        actionsDtos.forEach((statProps) => {
             let containerButton = document.createElement('div');
             containerButton.style.display = 'inline';
 
@@ -212,6 +253,7 @@ class TamgControllerAbstract{
 
         this._initTimer();
         this._initStatsDecreasing();
+        // this._initRandomhelp();
     }
 
     render() { this._renderGame() };
@@ -235,20 +277,37 @@ class TamgControllerAbstract{
         }, 5000)
     };
 
+    // _initRandomhelp() {
+    //     this.randomId = setInterval(() => {
+    //         this.getRandomHelp();
+    //     },2000);
+    // }
+
     _renderGame() {
         if (this.tamagModel.isTamagDead()) return this._gameOver();
 
         this.temagView.renderGame(
+            // this._getTamagValue(),
             this._getTamagStats(),
+            this._getTamagActions(),
             new TimerDto(this.startTime)
         );
     }
+
+    // _getTamagValue() {
+    //     return this.tamagModel.getStatValue()
+    // }
 
     _getTamagStats() {
         return this.tamagModel.getStats()
     }
 
+    _getTamagActions(){
+        return this.tamagModel.getAction()
+    }
+
     _gameOver() {
+        clearInterval(this.randomId);
         clearInterval(this.timerId);
         clearInterval(this.decreaseStatsId);
         this.main.changeState(new GameOverState(this.main))
@@ -265,18 +324,32 @@ class TamagLazyController extends TamgControllerAbstract {
     }
 }
 
-class TamagHardcoreController extends TamgControllerAbstract{
+class TamagFluffyController extends TamgControllerAbstract{
     _decreaseStats() {
         this.tamagModel.decreaseStatsBy(3);
     }
 }
 
+class TamagNinjaController extends TamgControllerAbstract{
+    _decreaseStats() {
+        this.tamagModel.decreaseStatsBy(7);
+    }
+
+    _initStatsDecreasing() {
+        this.decreaseStatsId =  setInterval(() => {
+            this._decreaseStats();
+
+            this._renderGame();
+        }, 7000)
+    }
+}
 
 class TamagFactory {
-    static get LAZY_TYPE() { return 'lazy' };
-    static get HARDCORE_TYPE() { return 'hardcore' };
+    static get LAZY_TYPE() { return 'lazy pug' };
+    static get FLUFFY_TYPE() { return 'fluffy cat' };
+    static get NINJA_TYPE() { return 'ninja' };
 
-    static get TAMAG_TYPES() { return [TamagFactory.LAZY_TYPE, TamagFactory.HARDCORE_TYPE] }
+    static get TAMAG_TYPES() { return [TamagFactory.LAZY_TYPE, TamagFactory.FLUFFY_TYPE, TamagFactory.NINJA_TYPE] }
 
     static getGameByType(type, main) {
         let tamagView = new TamagView(main.getRootElem());
@@ -284,8 +357,10 @@ class TamagFactory {
         switch (type) {
             case TamagFactory.LAZY_TYPE:
                 return new TamagLazyController(tamagView, new TamagModel(), main);
-            case TamagFactory.HARDCORE_TYPE:
-                return new TamagHardcoreController(tamagView, new TamagModel(100), main);
+            case TamagFactory.FLUFFY_TYPE:
+                return new TamagFluffyController(tamagView, new TamagModel(100), main);
+            case TamagFactory.NINJA_TYPE:
+                return new TamagNinjaController(tamagView, new TamagModelSimplified(), main);
             default:
                 new Error('Unsupported type')
         }
